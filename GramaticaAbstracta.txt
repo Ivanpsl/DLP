@@ -37,5 +37,5 @@ literalReal:expresion -> lexema:string;
 caracter:expresion -> string;
 variable:expresion -> lexema:string;
 
-llamadaFuncion:expresion -> nombre:string parametros:expresion*;
+llamadaFuncion:expresion, sentencia -> nombre:string parametros:expresion*;
 
