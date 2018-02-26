@@ -7,9 +7,9 @@ package ast;
 import java.util.*;
 import visitor.*;
 
-//	llamadaFuncion -> nombre:String  parametros:expresion*
+//	llamadaFuncion:expresion, sentencia -> nombre:String  parametros:expresion*
 
-public class LlamadaFuncion extends AbstractTraceable implements AST {
+public class LlamadaFuncion extends AbstractTraceable implements Expresion, Sentencia {
 
 	public LlamadaFuncion(String nombre, List<Expresion> parametros) {
 		this.nombre = nombre;

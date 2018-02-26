@@ -108,25 +108,27 @@ public class ASTPrinter extends DefaultVisitor {
 		return null;
 	}
 
-	//	class DefVariable { Tipo tipo;  String nombre; }
+	//	class DefVariable { String nombre;  Tipo tipo; }
 	public Object visit(DefVariable node, Object param) {
 		int indent = ((Integer)param).intValue();
 
 		printName(indent, "DefVariable", node, false);
 
-		visit(indent + 1, "tipo", "Tipo",node.getTipo());
 		print(indent + 1, "nombre", "String", node.getNombre());
+		visit(indent + 1, "tipo", "Tipo",node.getTipo());
 		return null;
 	}
 
-	//	class DefFuncion { String nombre;  Tipo retorno;  List<Sentencia> sentencia; }
+	//	class DefFuncion { String nombre;  List<Parametro> param;  Tipo retorno;  List<DefVariable> vars;  List<Sentencia> sentencia; }
 	public Object visit(DefFuncion node, Object param) {
 		int indent = ((Integer)param).intValue();
 
 		printName(indent, "DefFuncion", node, false);
 
 		print(indent + 1, "nombre", "String", node.getNombre());
+		visit(indent + 1, "param", "List<Parametro>",node.getParam());
 		visit(indent + 1, "retorno", "Tipo",node.getRetorno());
+		visit(indent + 1, "vars", "List<DefVariable>",node.getVars());
 		visit(indent + 1, "sentencia", "List<Sentencia>",node.getSentencia());
 		return null;
 	}
@@ -185,6 +187,26 @@ public class ASTPrinter extends DefaultVisitor {
 		int indent = ((Integer)param).intValue();
 
 		printCompact(indent, "TipoStruct", node, "nombre", node.getNombre());
+		return null;
+	}
+
+	//	class TipoVoid {  }
+	public Object visit(TipoVoid node, Object param) {
+		int indent = ((Integer)param).intValue();
+
+		printName(indent, "TipoVoid", node, true);
+
+		return null;
+	}
+
+	//	class Parametro { String nombre;  Tipo tipo; }
+	public Object visit(Parametro node, Object param) {
+		int indent = ((Integer)param).intValue();
+
+		printName(indent, "Parametro", node, false);
+
+		print(indent + 1, "nombre", "String", node.getNombre());
+		visit(indent + 1, "tipo", "Tipo",node.getTipo());
 		return null;
 	}
 

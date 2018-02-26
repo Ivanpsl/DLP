@@ -49,7 +49,7 @@ public class <nombre clase> extends DefaultVisitor {
 		return null;
 	}
 
-	//	class DefVariable { Tipo tipo;  String nombre; }
+	//	class DefVariable { String nombre;  Tipo tipo; }
 	public Object visit(DefVariable node, Object param) {
 
 		// super.visit(node, param);
@@ -60,13 +60,21 @@ public class <nombre clase> extends DefaultVisitor {
 		return null;
 	}
 
-	//	class DefFuncion { String nombre;  Tipo retorno;  List<Sentencia> sentencia; }
+	//	class DefFuncion { String nombre;  List<Parametro> param;  Tipo retorno;  List<DefVariable> vars;  List<Sentencia> sentencia; }
 	public Object visit(DefFuncion node, Object param) {
 
 		// super.visit(node, param);
 
+		if (node.getParam() != null)
+			for (Parametro child : node.getParam())
+				child.accept(this, param);
+
 		if (node.getRetorno() != null)
 			node.getRetorno().accept(this, param);
+
+		if (node.getVars() != null)
+			for (DefVariable child : node.getVars())
+				child.accept(this, param);
 
 		if (node.getSentencia() != null)
 			for (Sentencia child : node.getSentencia())
@@ -115,6 +123,22 @@ public class <nombre clase> extends DefaultVisitor {
 
 	//	class TipoStruct { String nombre; }
 	public Object visit(TipoStruct node, Object param) {
+		return null;
+	}
+
+	//	class TipoVoid {  }
+	public Object visit(TipoVoid node, Object param) {
+		return null;
+	}
+
+	//	class Parametro { String nombre;  Tipo tipo; }
+	public Object visit(Parametro node, Object param) {
+
+		// super.visit(node, param);
+
+		if (node.getTipo() != null)
+			node.getTipo().accept(this, param);
+
 		return null;
 	}
 

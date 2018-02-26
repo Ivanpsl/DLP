@@ -1,6 +1,10 @@
 %{
 package sintactico;
-
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import main.GestorErrores;
+import ast.*;
 %}
 %left '{' '}'
 %left '(' ')'
@@ -12,145 +16,148 @@ package sintactico;
 %left '[' ']'  
 %left '.' 
 %left ','
+
 %%
 
-programa: definiciones
+programa: definiciones	     	{ raiz = new Programa((List<Definicion>)$1);}
 	;
 
 //------------ Definiciones
 
-definiciones:
-	 | definiciones definicion
+definiciones:				 	{ $$ = new ArrayList<Definicion>();}
+	 | definiciones definicion	{ $$ = $1; ((ArrayList<Definicion>)$$).add((Definicion)$2);}
 	;
 	
-definicion: defFuncion
-	| defVar
-	| defStruct
+definicion: defFuncion			{$$ = $1;}
+	| defVar					{$$ = $1;}
+	| defStruct					{$$ = $1;}
 	;
  
-defsVariablesLocales:  
-	| defsVariablesLocales defVar
+defsVariablesLocales:  					{ $$ = new ArrayList<DefVariable>();}
+	| defsVariablesLocales defVar		{$$ = $1; ((ArrayList<DefVariable>)$$).add((DefVariable)$2);}
 	;
 	
-defVar: 'VAR' 'IDENT' ':' tipo ';'
+defVar: 'VAR' 'IDENT' ':' tipo ';'  			{$$ = new DefVariable($2, $4); }
 	; 
 	
-defFuncion: 'IDENT' '(' funOpParams ')'':' tipo '{' defsVariablesLocales sentencias '}'
-	| 'IDENT' '(' funOpParams ')' '{' defsVariablesLocales sentencias '}'
+defFuncion: 'IDENT' '(' funOpParams ')'':' tipo '{' defsVariablesLocales sentencias '}'				{$$ = new DefFuncion($1, $3, $6, $8, $9);}
+	| 'IDENT' '(' funOpParams ')' '{' defsVariablesLocales sentencias '}'							{$$ = new DefFuncion($1, $3, new TipoVoid(), $6,$7);}
 	;	
 
-defStruct: 'STRUCT' 'IDENT' '{' camposStruct '}' ';'
+defStruct: 'STRUCT' 'IDENT' '{' camposStruct '}' ';'												{$$ = new DefStruct($2,$4);}
 	;	
 
 
 
 //--------- Parametros 	
 		
-param: 'IDENT' ':' tipo
+param: 'IDENT' ':' tipo				{$$ = new Parametro($1, $3);}
 	;
 
-camposStruct:
-	| camposStruct paramStruct
+camposStruct:						{$$ = new ArrayList<Parametro>();}
+	| camposStruct campoStruct		{$$ = $1; ((ArrayList<Parametro>)$$).add((Parametro)$2);}
 	;
-paramStruct: param ';'
+campoStruct: param ';'				{$$ = $1;}
 	;
 	
 	
-funParams: param
-	| param ',' funParams
+funParams: param					{$$=new ArrayList<Parametro>(); ((ArrayList<Parametro>)$$).add((Parametro)$1);}
+	| funParams ',' param			{$$=$1; ((ArrayList<Parametro>)$1).add((Parametro)$3); }
 	;
-funOpParams: 
-	| funParams
+funOpParams: 						{$$ = new ArrayList<Parametro>();}
+	| funParams						{$$ = $1;}
 	;
 	
 	
 
 //------------ Sentencias y expresiones 
 	
-sentencias: 
-	| sentencias sentencia
+sentencias: 					{$$ = new ArrayList<Sentencia>();}
+	| sentencias sentencia		{$$ = $1; ((ArrayList<Sentencia>)$$).add((Sentencia)$2);}
 	;
 
-sentencia: 'READ' expr';'
-	| 'PRINT' expr ';'
-	| 'PRINTSP' expr ';'
-	| 'PRINTLN' expr ';'
-	| 'RETURN' expr ';'
-	| 'RETURN' ';'
-	| 'IF' '(' expr ')' '{' sentencias '}'
-	| 'IF' '(' expr ')' '{' sentencias '}' 'ELSE' '{' sentencias '}'
-	| 'WHILE' '(' expr ')' '{' sentencias '}'
-	| expr '=' expr ';'
-	| 'IDENT' '(' expresiones ')' ';' 
+sentencia: 'READ' expr';'											{$$ = new Read($2) ;}
+	| 'PRINT' expr ';'												{$$ = new Print($2);}		
+	| 'PRINTSP' expr ';'											{$$ = new Printsp($2);}	
+	| 'PRINTLN' expr ';'											{$$ = new Println($2);}	
+	| 'RETURN' expr ';'												{$$ = new Return($2);}	
+	| 'RETURN' ';'													{$$ = new Return(null);}
+	| 'IF' '(' expr ')' '{' sentencias '}'							{$$ = new If($3,$6,null);}
+	| 'IF' '(' expr ')' '{' sentencias '}' 'ELSE' '{' sentencias '}'{$$ = new If($3,$6,$10);}
+	| 'WHILE' '(' expr ')' '{' sentencias '}'						{$$ = new While($3,$6);}
+	| expr '=' expr ';'												{$$ = new Asignacion($1,$3);}
+	| 'IDENT' '(' expresiones ')' ';' 								{$$ = new LlamadaFuncion($1,$3);}
 	;
 
-expr: 'LITREAL'
-	| 'LITENT'
-	| 'IDENT'
-	| 'LITCHAR'
-	| expr '+' expr	  
-	| expr '-' expr	  
-	| expr '*' expr	 
-	| expr '/' expr	 
-	| expr 'MAYORIGUAL' expr
-	| expr 'IGUAL' expr
-	| expr '<' expr
-	| expr '>' expr
-	| expr 'MENORIGUAL' expr
-	| expr 'AND' expr
-	| expr 'OR' expr
-	| expr 'DISTINTO' expr
-	| '!' expr	
-	| '(' expr ')'
-	| 'CAST''<' tipo '>''('expr')'
-	| 'IDENT' '('')'
-	| expr '['expr']' 
-	| expr '.' 'IDENT'
-	|'IDENT' '(' expresiones ')'
+	
+expr: 'LITREAL'						{$$ = new LiteralReal($1);}
+	| 'LITENT'						{$$ = new LiteralInt($1);}
+	| 'IDENT'						{$$ = new Variable($1);}
+	| 'LITCHAR'						{$$ = new Caracter($1);}
+	| expr '+' expr	  				{$$ = new ExprAritmetica($1,$2,$3);}
+	| expr '-' expr		  			{$$ = new ExprAritmetica($1,$2,$3);}  
+	| expr '*' expr	  				{$$ = new ExprAritmetica($1,$2,$3);}	 
+	| expr '/' expr	  				{$$ = new ExprAritmetica($1,$2,$3);}	 
+	| expr 'MAYORIGUAL' expr 		{$$ = new ExprLogica($1,$2,$3);}
+	| expr 'IGUAL' expr	  			{$$ = new ExprLogica($1,$2,$3);}
+	| expr '<' expr	  				{$$ = new ExprLogica($1,$2,$3);}
+	| expr '>' expr	  				{$$ = new ExprLogica($1,$2,$3);} 
+	| expr 'MENORIGUAL' expr		{$$ = new ExprLogica($1,$2,$3);}
+	| expr 'AND' expr	  			{$$ = new ExprLogica($1,$2,$3);}
+	| expr 'OR' expr	  			{$$ = new ExprLogica($1,$2,$3);}
+	| expr 'DISTINTO' expr	  		{$$ = new ExprLogica($1,$2,$3);}
+	| '!' expr	  					{$$ = new Negacion($2);}	
+	| '(' expr ')'	  				{$$ = $2;}
+	| 'CAST''<' tipo '>''('expr')'	{$$ = new Cast($3,$6);}
+	| expr '['expr']' 	  			{$$ = $1;}
+	| expr '.' 'IDENT'	  			{$$ = $1;}
+	|'IDENT' '(' expresiones ')'  	{$$ = new LlamadaFuncion($1,$3);}
 	;
 
-expresiones: expr 
-	| expresiones ',' expr
+expresiones: expr 					{$$ = new ArrayList<Expresion>(); ((ArrayList<Expresion>)$$).add((Expresion)$1);}
+	| expresiones ',' expr			{$$ = $1; ((ArrayList<Expresion>)$$).add((Expresion)$3);}
 	|
 	;
 
-tipo: 'INT'
-	| 'FLOAT'
-	| 'CHAR'
-	| 'IDENT'
-	| '[' 'LITENT' ']' tipo
+tipo: 'INT'						{$$ = new TipoInt();}
+	| 'FLOAT'					{$$ = new TipoReal();}
+	| 'CHAR'					{$$ = new TipoChar();}
+	| 'IDENT'					{$$ = new TipoStruct($1);}	
+	| '[' 'LITENT' ']' tipo		{$$ = new TipoArray($2, $4);}	
 	;
+
 
 
 
 %%
+/* No es necesario modificar esta sección ------------------ */
 
-private Yylex lex;
-private int token;
-
-public Parser(Yylex lex, boolean debug) {
-  this(debug);
-  this.lex = lex;
+public Parser(Yylex lex, GestorErrores gestor, boolean debug) {
+	this(debug);
+	this.lex = lex;
+	this.gestor = gestor;
 }
 
-
+// Métodos de acceso para el main -------------
 public int parse() { return yyparse(); }
+public AST getAST() { return raiz; }
 
-
-// Funciones requeridas por el parser
-
-void yyerror(String s)
-{
- System.out.println("Error sintáctico en " + lex.line() + ":" + lex.column() + " Token = " + token + " lexema = \"" + lex.lexeme()+"\"");
+// Funciones requeridas por Yacc --------------
+void yyerror(String msg) {
+	Token lastToken = (Token) yylval;
+	gestor.error("Sintáctico", "Token = " + lastToken.getToken() + ", lexema = \"" + lastToken.getLexeme() + "\". " + msg, lastToken.getStart());
 }
 
 int yylex() {
-  try {
-	token = lex.yylex();
-	yylval = lex.lexeme();
-	return token;
-  } catch (Exception e) {
-    return -1;
-  }
+	try {
+		int token = lex.yylex();
+		yylval = new Token(token, lex.lexeme(), lex.line(), lex.column());
+		return token;
+	} catch (IOException e) {
+		return -1;
+	}
 }
 
+private Yylex lex;
+private GestorErrores gestor;
+private AST raiz;

@@ -1,5 +1,7 @@
 package sintactico;
-
+import java.io.*;
+import main.*;
+import ast.Position;
 %%
 %byaccj
 %unicode
@@ -8,17 +10,24 @@ package sintactico;
 %public
 
 %{
-  public String lexeme() {
-   return yytext();
-  }
+	public Yylex(Reader in, GestorErrores gestor) {
+		this(in);
+		this.gestor = gestor;
+	}
 
-  public int line() {
-    return yyline + 1;
-  }
+	public int line() { return yyline + 1; }
+	public int column() { return yycolumn + 1; }
+	public String lexeme() { return yytext(); }
 
-  public int column() {
-    return yycolumn + 1;
-  }
+	// Traza para probar el léxico de manera independiente al sintáctico
+	public static void main(String[] args) throws Exception {
+		Yylex lex = new Yylex(new FileReader(Main.programa), new GestorErrores());
+		int token;
+		while ((token = lex.yylex()) != 0)
+			System.out.println("\t[" + lex.line() + ":" + lex.column() + "] Token: " + token + ". Lexema: " + lex.lexeme());
+	}
+
+	private GestorErrores gestor;
 %}
 
 %%

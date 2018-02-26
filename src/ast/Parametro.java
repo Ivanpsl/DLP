@@ -6,18 +6,18 @@ package ast;
 
 import visitor.*;
 
-//	defVariable:definicion -> nombre:String  tipo:tipo
+//	parametro -> nombre:String  tipo:tipo
 
-public class DefVariable extends AbstractDefinicion {
+public class Parametro extends AbstractTraceable implements AST {
 
-	public DefVariable(String nombre, Tipo tipo) {
+	public Parametro(String nombre, Tipo tipo) {
 		this.nombre = nombre;
 		this.tipo = tipo;
 
 		searchForPositions(tipo);	// Obtener linea/columna a partir de los hijos
 	}
 
-	public DefVariable(Object nombre, Object tipo) {
+	public Parametro(Object nombre, Object tipo) {
 		this.nombre = (nombre instanceof Token) ? ((Token)nombre).getLexeme() : (String) nombre;
 		this.tipo = (Tipo) tipo;
 

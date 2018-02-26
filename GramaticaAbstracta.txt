@@ -1,19 +1,23 @@
 CATEGORIES
-expresion, sentencia, tipo, definicion
+expresion,sentencia,tipo,definicion
 
 NODES
 programa -> definicion*;
 
 
-defVariable:definicion -> tipo nombre:string;
-defFuncion:definicion -> nombre:string retorno:tipo sentencia*;
+defVariable:definicion -> nombre:string tipo; 
+defFuncion:definicion -> nombre:string param:parametro* retorno:tipo vars:defVariable* sentencia*;
 defStruct:definicion -> nombre:string campos:defVariable*;   
 
-tipoInt:tipo -> ;
-tipoReal:tipo -> ;
-tipoArray:tipo -> numero:string tipo;
-tipoChar:tipo -> ;
-tipoStruct:tipo -> nombre:string ;  
+tipoInt:tipo->;
+tipoReal:tipo->; 
+tipoArray:tipo-> numero:string tipo;
+tipoChar:tipo->;
+tipoStruct:tipo-> nombre:string ;  
+tipoVoid:tipo->;
+
+parametro -> nombre:string tipo;
+
 
 read:sentencia -> expresion;
 print:sentencia -> expresion;
@@ -30,9 +34,8 @@ negacion:expresion -> expresion;
 cast:expresion -> tipo expresion; 
 literalInt:expresion -> lexema:string;
 literalReal:expresion -> lexema:string;
-character:expresion -> string;
+caracter:expresion -> string;
 variable:expresion -> lexema:string;
 
-llamadaFuncion -> nombre:string parametros:expresion*;
-
+llamadaFuncion:expresion -> nombre:string parametros:expresion*;
 
